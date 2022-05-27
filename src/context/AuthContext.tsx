@@ -4,13 +4,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView, StyleSheet, TextInput, View, Alert, TouchableOpacity, Text } from "react-native";
 
 import cafeApi from "../api/cafeApi";
-import { LoginData, LoginResponse, RegisterData, Usuario } from "../interfaces/appinterfaces";
+import { LoginData, LoginResponse, RegisterData, Usuarios } from "../interfaces/appinterfaces";
 import { authReducer, AuthState } from "./AuthReducer";
 
 type AuthContextProps = {
     errorMessage: string;
     token: string | null;
-    user: Usuario | null;
+    user: Usuarios | null;
     status: 'checking' | 'authenticated' | 'not-authenticated';
     signUp: (RegisterData: RegisterData) => void;
     signIn: (loginData : LoginData) => void;
@@ -46,7 +46,7 @@ export const AuthProvider = ({children}: any) =>{
        if (!token) return dispatch({ type:'notAuthenticated'});
     
        //hay token
-       const resp = await cafeApi.get('/auth');
+       const resp = await cafeApi.get('/usuarios/middlewares/Auth.php');
        if(resp.status !== 200){
           return dispatch({type:'notAuthenticated'});
        }
@@ -57,7 +57,7 @@ export const AuthProvider = ({children}: any) =>{
            type: 'signUp',
            payload:{
                token: resp.data.token,
-               user: resp.data.usuario
+               user: resp.data.usuarios
            }
        })
 
@@ -87,24 +87,43 @@ export const AuthProvider = ({children}: any) =>{
 
         */
 
-       
-            await fetch('https://www.deportes.controlsas.com/apiPlooy/usuarios/login.php',
-            {
-              method:'POST',
-              headers:{
-                'Accept': 'application/json',
-                'content-Type': 'application/json'
-         
-              },
-              body: JSON.stringify({"email":correo, "password" : password})
-            }).then(res => res.json())
-            .then(resData => {
 
-             Alert.alert(resData.message)
-             console.log(resData);
-             
+        
+
+
+        
+
+
+    await  fetch('https://www.miweb.com/apiPlooy/usuarios/login.php',
+    {
+      method:'POST',
+      headers:{
+        'Accept': 'application/json',
+        'content-Type': 'application/json'
+ 
+      },
+      body: JSON.stringify({"email":correo, "password" : password})
+    }).then(res => res.json())
+    .then(resData => {
+       if(resData.message == "Ha iniciado sesión correctamente.") {
+
+        dispatch({
+            type: 'signUp',
+            payload: {
+                token: resData.token,
+                user: resData.usuarios
+            }
             
-            });
+        });      
+        
+       }else{
+        Alert.alert(resData.message)
+       }
+       
+    });
+
+     
+
             
            }catch (error) {
             dispatch({type: 'addError',
@@ -112,7 +131,8 @@ export const AuthProvider = ({children}: any) =>{
            }
     };
 
-    const signUp = async ({nombre, correo, password, tipousuario}: RegisterData) => {
+
+   /* const signUp = async ({nombre, correo, password, tipousuario}: RegisterData) => {
 
         try {
 
@@ -131,7 +151,70 @@ export const AuthProvider = ({children}: any) =>{
             dispatch({type: 'addError',
                        payload: error.response.data.errors[0].msg || 'Revise la información'})
           }
+    };*/
+
+
+    
+
+
+    const signUp = async ({name, email, password, tipo_usuario}: RegisterData) => {
+
+        try { /*
+
+            const {data} = await cafeApi.post<LoginResponse>('/usuarios/register.php',{name,email,password,tipo_usuario});
+            
+            dispatch({
+                type: 'signUp',
+                payload: {
+                    token: data.token,
+                    user: data.usuario
+                }
+            });
+  
+            await AsyncStorage.setItem('token', data.token);
+           
+            */
+
+
+            await  fetch('https://www.miweb.com/apiPlooy/usuarios/register.php',
+    {
+      method:'POST',
+      headers:{
+        'Accept': 'application/json',
+        'content-Type': 'application/json'
+ 
+      },
+      body: JSON.stringify({"email":email, "password" : password, "name" : name,  "tipo_usuario" : tipo_usuario})
+    }).then(res => res.json())
+    .then(resData => {
+       if(resData.message == "Se ha registrado exitosamente.") {
+
+        dispatch({
+            type: 'signUp',
+            payload: {
+                token: resData.token,
+                user: resData.usuarios
+            }
+            
+        });  
+        
+        Alert.alert(resData.message)
+       }else{
+        Alert.alert(resData.message)
+       }
+      
+    
+    });
+
+
+
+          } catch (error) {
+            dispatch({type: 'addError',
+                       payload: error.response.data.errors[0].msg || 'Revise la información'})
+          }
     };
+
+
 
     const logOut = async () => {
        await AsyncStorage.removeItem('token');
