@@ -4,24 +4,33 @@ export interface LoginData{
 }
 
 export interface RegisterData{
-  correo: string;
+  /*correo: string;
   password: string;
   nombre: string;
-  tipousuario: string;
+  tipousuario: string;*/
+  name: string;
+  email: string;
+  password: string;
+  tipo_usuario: string;
+
 }
 
 export interface LoginResponse{
-    usuario: Usuario;
+    usuarios: Usuarios;
     token: string;
 }
 
-export interface Usuario{
-    tipousuario: String;
+export interface Usuarios{
+    /*tipousuario: String;
     rol: String;
     estado: boolean;
     google:boolean;
     nombre:string;
     correo: string;
     uid:string;
-    img?: string;
+    img?: string;*/
+
+
+    tipo_usuario: String;
+    email: String;
 }
